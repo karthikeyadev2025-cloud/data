@@ -1,145 +1,177 @@
 # plan.md — Nikki Tech Labs Contact Scraper (Multi-tenant SaaS)
 
 ## 1) Objectives
-- Prove the **core workflow** works with real data: Google Places → Place Details → website crawl → extract **phone + email + social handles**.
-- Build a **multi-tenant SaaS MVP**: tenant dashboards, strict data isolation, credits, search history, export CSV/XLSX.
-- Add **Google OAuth + JWT**, **Razorpay top-ups**, and **Super Admin** controls + analytics.
-- Ship git-ready, clean UI/UX, mobile responsive, footer: **“An innovation by Nikki Tech Labs”**.
+- Deliver a **production-ready MVP** of a multi-tenant lead/contact scraping SaaS targeted at Indian (South Indian) SMB/agency users.
+- Provide a unified dashboard with multiple scrapers:
+  - ✅ Google Maps Scraper (Google **Places API New v1**) + website enrichment
+  - ✅ YouTube Scraper (YouTube Data API v3)
+  - ✅ Website contact enrichment (emails/phones/social links)
+  - ✅ E-commerce/product page scraper (OpenGraph + LD-JSON best-effort)
+  - ⚙️ Google Search Results Scraper (via **SerpAPI** — key required)
+  - ⚙️ Instagram/Facebook scrapers (via **Apify actors** — token required)
+- Support **multi-tenant SaaS operations**: tenant dashboards, strict tenant isolation, credit-based usage, search history, exports.
+- Provide **Super Admin** panel to manage tenants, plans, credits, API keys (stored in DB), transactions and audit logs.
+- Support **payments via Razorpay** to top-up credits (end-to-end once keys are added).
+- Ship git-ready codebase + deployment documentation:
+  - Frontend: Vercel
+  - Backend: Render/Railway/Fly (recommended long-lived server for scraping)
+  - Database: Supabase (PostgreSQL)
+- Ensure enterprise UI/UX and branding:
+  - Footer: **“An innovation by Nikki Tech Labs”**
+  - Tenant accent: teal; Admin accent: amber
+  - Mobile responsive, clean tables and exports
 
 ---
 
 ## 2) Implementation Steps
 
-### Phase 1 — Core Scraper POC (must pass before app)
+### Phase 1 — Core Scraper POC (must pass before app) ✅ COMPLETE
 **Goal:** validate scraping/enrichment pipeline on real queries.
-1. Websearch: confirm best practices for Google Places Text Search + Place Details usage, quotas, pagination, fields, and safe crawling timeouts.
-2. Create `/app/backend/test_core.py`:
-   - Reads `GOOGLE_API_KEY` from `.env`.
-   - Inputs: `keyword`, `location`, `max_results`.
-   - Calls Places Text Search (paginate if needed) → collects `place_id`.
-   - Calls Place Details for fields: name, formatted_address, formatted_phone_number, website, types, rating, user_ratings_total, opening_hours.
-   - If `website`: fetch `homepage` + best-guess contact URLs (`/contact`, `/contact-us`, etc.), follow redirects, 8s timeout.
-   - Parse with BeautifulSoup; extract:
-     - emails (regex + mailto)
-     - social links (href patterns for instagram.com, facebook.com, linkedin.com, youtube.com, x.com/twitter.com)
-   - Print table + summary metrics + `POC PASSED/FAILED`.
-3. Iterate until exit criteria met (below). Store the working extraction logic in `scraper_core.py` for reuse.
 
-**Phase 1 user stories**
-1. As a developer, I can run a script with keyword+location and get 5–10 real businesses.
-2. As a developer, I get phone + website from Google Places details per business.
-3. As a developer, if a website exists, I can extract at least one email or social handle when available.
-4. As a developer, I can see clear success/failure reasons per row (no website, timeout, blocked, etc.).
-5. As a developer, the script never crashes on bad HTML/SSL; it returns partial results.
+**What was built + verified**
+1. Implemented `scraper_core.py` and `test_core.py` POC suite.
+2. Verified **Supabase connectivity** and schema readiness.
+3. Implemented Google Maps scraping using **Places API (New) v1** (searchText) and validated real results.
+4. Implemented website enrichment (homepage + contact paths) extracting:
+   - emails (regex/mailto)
+   - social links (instagram/facebook/linkedin/twitter/youtube/whatsapp)
+5. Implemented YouTube scraper using YouTube Data API v3.
+6. Implemented e-commerce/product scraper (best-effort) using OpenGraph + LD-JSON.
+7. Added **parallel website enrichment** (ThreadPoolExecutor) to keep searches fast.
+
+**Exit criteria achieved**
+- POC PASSED on real searches.
+- Confirmed real Google Maps query example: **“coffee shops Bangalore” → 10 real businesses** with phone + some enriched socials/emails.
 
 ---
 
-### Phase 2 — V1 App Development (no OAuth/payments yet; core UX first)
-**Goal:** working SaaS app around proven core with a temporary dev auth.
-1. Backend (FastAPI + Motor + MongoDB):
-   - Core models: Tenant, User, SearchJob, SearchResult, Plan.
-   - Multi-tenancy enforced via `tenant_id` on every record + query filter.
-   - Endpoints:
-     - `POST /api/search` (runs scraper, stores results)
-     - `GET /api/searches` (history)
-     - `GET /api/searches/{id}` (detail)
-     - `GET /api/searches/{id}/export?format=csv|xlsx`
-     - `GET /api/plans`
-     - `GET /api/me`
-   - Credits logic stubbed with dev tenant (deduct 1 credit per result returned).
-   - Add basic rate limiting on `/api/search`.
-2. Frontend (React + Tailwind + shadcn/ui):
-   - Landing page + pricing section.
-   - Tenant dashboard: credits badge, quick search, recent searches.
-   - Search page: keyword+location+max_results, loading state, results table, export buttons.
-   - History + Search Detail pages.
-   - Footer on all pages.
-3. Dev-only auth for testing (`DEV_MODE=true`): a simple “Login as demo tenant” button.
-4. Run 1 full E2E test pass of V1 (core UX + export + history).
+### Phase 2 — Full MVP App (core UX + backend + admin) ✅ COMPLETE
+**Goal:** complete multi-tenant SaaS application around proven core.
 
-**Phase 2 user stories**
-1. As a visitor, I can view a landing page with pricing and product explanation.
-2. As a tenant, I can run a search and see results in a clean table.
-3. As a tenant, I can export results to CSV/XLSX.
-4. As a tenant, I can view my search history and open a past search.
-5. As a tenant, my credits decrease based on results returned and I’m blocked at 0.
+#### Backend (FastAPI + Supabase Postgres)
+- ✅ Migrated from Mongo to **Supabase (PostgreSQL)**.
+- ✅ Added full SQL schema: `supabase_schema.sql`.
+- ✅ Implemented JWT auth + roles:
+  - `super_admin` (static password login seeded on startup)
+  - `tenant_admin` (email/password signup/login; Google OAuth API endpoint ready)
+- ✅ Implemented tenant isolation checks on all tenant routes.
+- ✅ Implemented scraper endpoints:
+  - `POST /api/search` (google_maps, youtube, website, ecommerce)
+  - `GET /api/search` (history)
+  - `GET /api/search/{id}` (detail)
+  - `GET /api/search/{id}/export?format=csv|xlsx`
+- ✅ Implemented credits model:
+  - 1 credit per result returned (unlimited plans bypass)
+  - usage logged in `transactions` as `type=usage`
+- ✅ Implemented Super Admin API:
+  - Stats, tenants management, plans management, settings (API keys), transactions, audit
+- ✅ Implemented payments module (Razorpay) with graceful “not configured” behavior until keys are added.
+
+#### Supabase reliability hardening
+- ✅ Fixed intermittent Supabase HTTP/2 disconnects by **forcing HTTP/1.1** for the internal httpx client + retry/reset behavior.
+- ✅ Added middleware fallback returning 503 on transient DB issues.
+
+#### Frontend (React + Tailwind + shadcn/ui)
+- ✅ Landing page with pricing and 6 scraper tiles.
+- ✅ Login + Signup (email/password). Super admin uses password login.
+- ✅ Tenant app:
+  - Dashboard (KPIs, quick search CTA, recent searches)
+  - Search page with 6 scraper tabs + results table + export buttons
+  - History page + search detail page + exports
+  - Billing page (plans + buy credits modal; Razorpay disabled until configured)
+- ✅ Super Admin panel:
+  - Overview analytics + charts
+  - Tenants management (activate/deactivate, grant credits, change plan)
+  - Settings (API keys, brand config)
+  - Plans management
+  - Transactions log
+  - Audit log
+- ✅ Design guidelines applied:
+  - Tenant teal accent; admin amber accent
+  - IBM Plex + Space Grotesk fonts
+  - Mobile responsiveness
+  - Footer text on all pages
 
 ---
 
-### Phase 3 — Auth + Multi-tenant SaaS hardening + Super Admin
-**Goal:** real Google OAuth, JWT sessions, tenant isolation verification.
-1. Implement Google OAuth (Google Identity Services on frontend; backend verifies ID token):
-   - `POST /api/auth/google` → verify token → create/update user + auto-create tenant → return JWT.
-   - Middleware/dependencies: `get_current_user`, role checks.
-2. Super admin access controlled by `SUPER_ADMIN_EMAILS` env var.
-3. Admin endpoints:
-   - Stats: tenants, searches, credits usage
-   - Tenants table: activate/deactivate, change plan, add credits
-   - Transactions/searches listing (search filters)
-4. Re-test all tenant isolation rules (tenant A never sees tenant B).
+### Phase 3 — Production integrations (keys  payments  social scrapers) ⚙️ IN PROGRESS / WAITING ON USER
+**Goal:** unlock paid features + social scrapers and finalize production deployment settings.
+
+1. **Razorpay keys** (Super Admin Settings)
+   - Add `razorpay_key_id` + `razorpay_key_secret`
+   - Verify end-to-end:
+     - `/api/payments/create-order`
+     - `/api/payments/verify`
+     - credits increase + transaction logged
+
+2. **SerpAPI key** (Super Admin Settings)
+   - Add `serpapi_key`
+   - Enables **Google Search Results Scraper** in the UI.
+
+3. **Apify token** (Super Admin Settings)
+   - Add `apify_token`
+   - Implement actor integration for:
+     - Instagram scraper
+     - Facebook posts/page scraper
+
+4. **Google OAuth (optional)**
+   - Add `google_oauth_client_id` + `google_oauth_client_secret` in platform settings.
+   - Update login page to show “Sign in with Google” button.
 
 **Phase 3 user stories**
-1. As a user, I can sign in with Google and land in my tenant dashboard.
-2. As a new user, my tenant is auto-created with Free Trial credits.
-3. As a tenant, I can’t access other tenant searches by URL guessing.
-4. As super admin, I can view all tenants and update their plan/credits.
-5. As super admin, I can see high-level analytics charts.
+- Tenant can buy credits via Razorpay; credits update immediately.
+- Tenant can run Google Search (SerpAPI) and see enriched contacts.
+- Tenant can run IG/FB (Apify) scrapers from the same Search UI.
 
 ---
 
-### Phase 4 — Razorpay Top-ups + Credits + Webhooks
-**Goal:** real payment flow in test mode + credit grants.
-1. Integrate Razorpay:
-   - `POST /api/payments/create-order` (amount, tenant_id)
-   - `POST /api/payments/verify` (signature verification)
-   - Optional webhook handler for production reliability.
-2. Credits ledger:
-   - Transaction record per top-up; idempotency checks.
-   - If scraper fails due to quota/errors → refund credits for that request.
-3. UI: Billing page, Buy Credits modal, post-payment success/fail states.
-4. E2E test: order → checkout → verify → credits increment → search allowed.
-
-**Phase 4 user stories**
-1. As a tenant, I can buy credits via Razorpay and see credits increase.
-2. As a tenant, failed payments don’t add credits and show clear error.
-3. As a tenant, I can view a list of my credit transactions.
-4. As admin, I can view all transactions with filters.
-5. As a tenant, if Google quota blocks a search, I don’t lose credits.
+### Phase 4 — Polish + enterprise hardening (optional) 🔜
+1. Better enrichment quality:
+   - phone normalization (E.164)
+   - email validation + confidence flags
+   - deduplication and merging across sources
+2. Performance:
+   - background job queue for large searches
+   - progress tracking for long runs
+3. Security:
+   - stricter CORS
+   - rate-limiting on `/api/search`
+   - enable Supabase RLS + least-privilege keys (optional)
+4. Product features:
+   - team members per tenant
+   - invoices download, billing history
+   - API access tokens for enterprise
 
 ---
 
-### Phase 5 — Polish + Deploy readiness
-1. Improve enrichment quality: dedupe results, normalize phones (E.164), validate emails.
-2. Performance: concurrency limits, caching place details, store crawl outcomes.
-3. Security: CORS, strict env handling, remove DEV_MODE in prod, input validation.
-4. Deployment guides:
+## 3) Next Actions (current)
+1. **User provides keys in Super Admin → Settings** (no code changes needed):
+   - Razorpay keys to enable payments
+   - SerpAPI key to enable Google Search scraper
+   - Apify token to enable IG/FB scrapers
+   - (Optional) Google OAuth client credentials
+2. Push repository to GitHub.
+3. Deploy:
    - Frontend → Vercel
    - Backend → Render/Railway/Fly
-   - DB → Mongo Atlas
-   - Full README with env vars + setup.
-5. Final E2E regression test.
-
-**Phase 5 user stories**
-1. As a tenant, I can re-open old searches and re-export without spending credits.
-2. As a tenant, I see verified/normalized phone + email indicators.
-3. As a tenant, large searches don’t freeze UI; progress/loading is clear.
-4. As an admin, I can safely operate without breaking tenant isolation.
-5. As a developer, I can deploy using README steps with minimal friction.
+   - DB → Supabase (already configured)
+4. Run a short production verification checklist:
+   - login/signup
+   - run Google Maps search (5 results)
+   - export CSV/XLSX
+   - admin grant credits
+   - (if keys added) Razorpay payment + SerpAPI + Apify
 
 ---
 
-## 3) Next Actions (to start immediately)
-1. You share: `GOOGLE_API_KEY` (Places enabled). If needed also: `GOOGLE_OAUTH_CLIENT_ID`.
-2. I implement Phase 1 `test_core.py` + `scraper_core.py` and run it on 2 real queries.
-3. If `POC PASSED`, begin Phase 2 V1 app build (core UX + export + history).
-
----
-
-## 4) Success Criteria
-- **POC:** On a real query (e.g., “bangle shops Hyderabad”, 10 results):
-  - ≥7/10 have phone (from Place Details)
-  - ≥3/10 have at least one extracted email OR social link
-  - Script prints `POC PASSED` reliably.
-- **MVP:** Tenant can search, view results, export CSV/XLSX, see history; credits enforce limits; mobile responsive.
-- **SaaS:** Google OAuth works, strict tenant isolation proven, super admin panel works.
-- **Payments:** Razorpay test flow credits top-up works end-to-end with verified signature and transaction logs.
+## 4) Success Criteria (updated)
+- ✅ **POC success**: Real data returned for Google Maps (Places New v1), YouTube, Website enrichment, E-commerce; Supabase verified.
+- ✅ **MVP success**:
+  - Multi-tenant dashboards + history + exports
+  - Credits enforced (402 on insufficient credits)
+  - Super admin panel operational
+  - Mobile responsive + enterprise UI
+- ✅ **Reliability**:
+  - Supabase intermittent HTTP/2 issue resolved by forcing HTTP/1.1 + retry/reset
+- ⏳ **Payments success** (pending keys): Razorpay test mode works end-to-end, credits update + transactions logged.
+- ⏳ **Expanded scraper success** (pending keys): SerpAPI and Apify integrations enabled from admin settings with no redeploy.

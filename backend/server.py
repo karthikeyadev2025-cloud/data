@@ -1,6 +1,7 @@
 """Nikki Tech Labs — FastAPI backend entry."""
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 import os
 import logging
@@ -20,6 +21,7 @@ from routes.search_routes import router as search_router
 from routes.tenant_routes import router as tenant_router
 from routes.admin_routes import router as admin_router
 from routes.payment_routes import router as payment_router
+from db import reset_sb
 
 app = FastAPI(title="Nikki Tech Labs API", version="1.0.0")
 
@@ -51,6 +53,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def _supabase_reset_on_transient_errors(request: Request, call_next):
+    """If a Supabase HTTP/2 error slips through, return 503 + reset the client
+    so the next call gets a fresh connection pool."""
+    try:
+        return await call_next(request)
+    except Exception as e:
+        msg = str(e)
+        if "HTTP/2" in msg or "ConnectError" in msg or "httpcore" in msg or "RemoteProtocolError" in msg:
+            log.warning(f"Transient Supabase error, resetting client: {msg[:200]}")
+            reset_sb()
+            return JSONResponse(status_code=503,
+                content={"detail": "Database temporarily unavailable. Please retry."})
+        raise
 
 
 @app.on_event("startup")
