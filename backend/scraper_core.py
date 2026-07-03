@@ -21,7 +21,6 @@ from typing import Any
 from urllib.parse import urljoin, urlparse
 
 import httpx
-import googlemaps
 from bs4 import BeautifulSoup
 
 log = logging.getLogger("scraper")
@@ -124,72 +123,98 @@ def scrape_website(url: str) -> dict:
 
 
 # ======================================================================
-# 2. Google Maps Scraper — Places API (real, legal)
+# 2. Google Maps Scraper — Places API (New) v1 (real, legal, future-proof)
 # ======================================================================
+PLACES_NEW_SEARCH = "https://places.googleapis.com/v1/places:searchText"
+PLACES_NEW_DETAILS_BASE = "https://places.googleapis.com/v1/places"
+
+# All useful fields for a business listing (New API uses camelCase field mask)
+_PLACES_FIELD_MASK = (
+    "places.id,places.displayName,places.formattedAddress,"
+    "places.internationalPhoneNumber,places.nationalPhoneNumber,"
+    "places.websiteUri,places.rating,places.userRatingCount,"
+    "places.types,places.primaryType,places.location,"
+    "places.googleMapsUri,places.businessStatus,"
+    "places.regularOpeningHours.weekdayDescriptions,"
+    "nextPageToken"
+)
+
+
 def scrape_google_maps(query: str, location: str = "", max_results: int = 20,
                       api_key: str | None = None,
                       enrich_websites: bool = True) -> list[dict]:
-    """Returns list of businesses with contact + social info."""
+    """Returns list of businesses with contact + social info.
+    Uses Google Places API (New) v1 which is the current recommended API.
+    """
     if not api_key:
         raise ValueError("google api_key required")
-    gmaps = googlemaps.Client(key=api_key)
     q = f"{query} in {location}" if location else query
     log.info(f"[google_maps] query='{q}' max={max_results}")
 
     all_places: list[dict] = []
-    page_token = None
-    while len(all_places) < max_results:
-        if page_token:
-            time.sleep(2)  # required by API
-            resp = gmaps.places(query=q, page_token=page_token)
-        else:
-            resp = gmaps.places(query=q)
-        all_places.extend(resp.get("results", []))
-        page_token = resp.get("next_page_token")
-        if not page_token:
-            break
+    page_token: str | None = None
+    with httpx.Client(timeout=25) as c:
+        while len(all_places) < max_results:
+            body: dict[str, Any] = {"textQuery": q, "pageSize": min(20, max_results - len(all_places))}
+            if page_token:
+                body["pageToken"] = page_token
+                time.sleep(2)  # New API also requires a brief pause between pages
+            r = c.post(PLACES_NEW_SEARCH,
+                       headers={"Content-Type": "application/json",
+                                "X-Goog-Api-Key": api_key,
+                                "X-Goog-FieldMask": _PLACES_FIELD_MASK},
+                       json=body)
+            if r.status_code != 200:
+                # Bubble up Google's error message so it's easy to fix
+                raise RuntimeError(f"Places API (New) error {r.status_code}: {r.text[:400]}")
+            data = r.json()
+            batch = data.get("places", []) or []
+            if not batch:
+                break
+            all_places.extend(batch)
+            page_token = data.get("nextPageToken")
+            if not page_token:
+                break
+
     all_places = all_places[:max_results]
 
     rows: list[dict] = []
     for p in all_places:
-        pid = p.get("place_id")
-        try:
-            details = gmaps.place(place_id=pid, fields=[
-                "name", "formatted_address", "formatted_phone_number",
-                "international_phone_number", "website", "rating",
-                "user_ratings_total", "types", "geometry", "url",
-                "opening_hours",
-            ])["result"]
-        except Exception as e:
-            log.warning(f"details failed for {pid}: {e}")
-            details = {}
-
+        loc = p.get("location") or {}
         row = {
-            "name": details.get("name") or p.get("name"),
-            "phone": details.get("international_phone_number") or details.get("formatted_phone_number"),
+            "name": (p.get("displayName") or {}).get("text") if isinstance(p.get("displayName"), dict) else p.get("displayName"),
+            "phone": p.get("internationalPhoneNumber") or p.get("nationalPhoneNumber"),
             "email": None,
-            "website": details.get("website"),
-            "address": details.get("formatted_address") or p.get("formatted_address"),
+            "website": p.get("websiteUri"),
+            "address": p.get("formattedAddress"),
             "city": location or None,
-            "category": (details.get("types") or p.get("types") or [None])[0],
-            "rating": details.get("rating") or p.get("rating"),
-            "reviews_count": details.get("user_ratings_total") or p.get("user_ratings_total"),
-            "latitude": (details.get("geometry", {}).get("location", {}) or {}).get("lat"),
-            "longitude": (details.get("geometry", {}).get("location", {}) or {}).get("lng"),
+            "category": p.get("primaryType") or (p.get("types") or [None])[0],
+            "rating": p.get("rating"),
+            "reviews_count": p.get("userRatingCount"),
+            "latitude": loc.get("latitude"),
+            "longitude": loc.get("longitude"),
             "instagram": None, "facebook": None, "linkedin": None,
             "twitter": None, "youtube": None, "whatsapp": None,
-            "extra": {"google_maps_url": details.get("url"), "place_id": pid,
-                      "types": details.get("types") or []},
+            "extra": {
+                "google_maps_url": p.get("googleMapsUri"),
+                "place_id": p.get("id"),
+                "types": p.get("types") or [],
+                "business_status": p.get("businessStatus"),
+                "opening_hours": (p.get("regularOpeningHours") or {}).get("weekdayDescriptions") or [],
+            },
         }
 
         if enrich_websites and row["website"]:
-            enrich = scrape_website(row["website"])
-            for k in ["email", "instagram", "facebook", "linkedin",
-                      "twitter", "youtube", "whatsapp"]:
-                if enrich.get(k):
-                    row[k] = enrich[k]
-            if not row["phone"] and enrich.get("phone"):
-                row["phone"] = enrich["phone"]
+            try:
+                enrich = scrape_website(row["website"])
+                for k in ["email", "instagram", "facebook", "linkedin",
+                          "twitter", "youtube", "whatsapp"]:
+                    if enrich.get(k):
+                        row[k] = enrich[k]
+                if not row["phone"] and enrich.get("phone"):
+                    row["phone"] = enrich["phone"]
+            except Exception as e:
+                log.debug(f"enrich failed for {row['website']}: {e}")
 
         rows.append(row)
         log.info(f"  ✓ {row['name']} | ph={bool(row['phone'])} em={bool(row['email'])} ig={bool(row['instagram'])}")

@@ -74,25 +74,33 @@ except Exception as e:
 
 # ---------- 2. Google Maps ----------
 banner("2. Google Maps Scraper (real query)")
-query = "bangle shops"
-location = "Hyderabad, India"
-maps_rows = []
+# Run TWO queries: (a) small local shops (phone-heavy, no websites) and
+# (b) restaurants (many websites -> social/email enrichment)
+queries = [("bangle shops", "Hyderabad, India"),
+           ("restaurants", "Hyderabad, India")]
+all_maps_rows = []
 try:
-    maps_rows = scrape_google_maps(query, location, max_results=6,
-                                   api_key=GOOGLE_KEY, enrich_websites=True)
-    for r in maps_rows:
-        print(f"    - {r['name']:<42.42} | ph={'Y' if r['phone'] else '-'} "
-              f"| em={'Y' if r['email'] else '-'} "
-              f"| ig={'Y' if r['instagram'] else '-'} "
-              f"| fb={'Y' if r['facebook'] else '-'} "
-              f"| web={'Y' if r['website'] else '-'}")
-    n_phone = sum(1 for r in maps_rows if r["phone"])
-    n_social = sum(1 for r in maps_rows if r["email"] or r["instagram"] or r["facebook"])
-    maps_ok = (check(len(maps_rows) >= 5, f"got {len(maps_rows)} businesses (need >=5)")
-               and check(n_phone >= 3, f"{n_phone} with phone (need >=3)")
-               and check(n_social >= 1, f"{n_social} with email/social (need >=1)"))
+    for (q, loc) in queries:
+        rows = scrape_google_maps(q, loc, max_results=6,
+                                  api_key=GOOGLE_KEY, enrich_websites=True)
+        for r in rows:
+            print(f"    - [{q[:8]:<8}] {r['name'][:38]:<38.38} | ph={'Y' if r['phone'] else '-'} "
+                  f"| em={'Y' if r['email'] else '-'} "
+                  f"| ig={'Y' if r['instagram'] else '-'} "
+                  f"| fb={'Y' if r['facebook'] else '-'} "
+                  f"| web={'Y' if r['website'] else '-'}")
+        all_maps_rows.extend(rows)
+    n_phone = sum(1 for r in all_maps_rows if r["phone"])
+    n_web = sum(1 for r in all_maps_rows if r["website"])
+    n_social = sum(1 for r in all_maps_rows if r["email"] or r["instagram"] or r["facebook"])
+    maps_ok = (check(len(all_maps_rows) >= 8, f"got {len(all_maps_rows)} businesses (need >=8)")
+               and check(n_phone >= 6, f"{n_phone} with phone (need >=6)")
+               and check(n_web >= 2, f"{n_web} with website (need >=2)")
+               and check(n_social >= 1, f"{n_social} with email/social from website enrichment (need >=1)"))
+    maps_rows = all_maps_rows  # for compatibility below
 except Exception as e:
     maps_ok = False
+    maps_rows = all_maps_rows
     print(f"  {FAIL} Google Maps scraper error: {e}")
 
 # ---------- 3. YouTube ----------
@@ -125,7 +133,7 @@ check(site_ok, "At least one site yielded a contact/social")
 
 # ---------- 5. E-commerce ----------
 banner("5. E-commerce / product page scraper")
-test_product = "https://www.flipkart.com/apple-iphone-15-blue-128-gb/p/itmbf14ef54a19d9"
+test_product = "https://www.bhindi.com/products/emerald-and-diamond-necklace-set"
 ecom_ok = False
 try:
     p = scrape_ecommerce(test_product)

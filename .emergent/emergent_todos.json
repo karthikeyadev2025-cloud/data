@@ -1,0 +1,30 @@
+[
+  {
+    "content": "Phase 1: POC — all 5 scrapers working with real data",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 2: Get design guidelines from design_agent",
+    "status": "in_progress"
+  },
+  {
+    "content": "Phase 2: Backend — auth (super admin password + Google OAuth), Supabase data layer, all scraper routes, admin routes, payments stub",
+    "status": "pending"
+  },
+  {
+    "content": "Phase 2: Frontend — landing, login, tenant dashboard, search page, results table, export, history, billing, super admin panel",
+    "status": "pending"
+  },
+  {
+    "content": "Phase 2: End-to-end testing via testing_agent_v3 covering ALL user stories",
+    "status": "pending"
+  },
+  {
+    "content": "Phase 3: Razorpay integration (needs keys from user)",
+    "status": "pending"
+  },
+  {
+    "content": "Phase 3: Deployment guide (Vercel frontend + Vercel Python serverless backend + Supabase)",
+    "status": "pending"
+  }
+]
