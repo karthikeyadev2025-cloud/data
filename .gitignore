@@ -41,3 +41,10 @@ coverage/
 plan.md
 design_guidelines.md
 frontend/node_modules/.cache/default-development/5.pack
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
