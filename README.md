@@ -44,8 +44,8 @@ Multi-tenant SaaS platform for real business contact data scraping.
 SUPABASE_URL="https://xxx.supabase.co"
 SUPABASE_ANON_KEY="..."
 SUPABASE_SERVICE_ROLE_KEY="..."
-SUPER_ADMIN_EMAIL="adexosindia@gmail.com"
-SUPER_ADMIN_PASSWORD="Karthi@20252026"
+SUPER_ADMIN_EMAIL="you@yourcompany.com"
+SUPER_ADMIN_PASSWORD="change-me-strong-password"
 JWT_SECRET="change-me-to-a-long-random-string"
 JWT_ALGORITHM="HS256"
 JWT_EXPIRE_HOURS="168"
@@ -73,7 +73,7 @@ yarn start
 ```
 
 ### 5) Test credentials
-- **Super Admin**: `adexosindia@gmail.com` / `Karthi@20252026` → `/admin`
+- **Super Admin**: set via `SUPER_ADMIN_EMAIL` + `SUPER_ADMIN_PASSWORD` env vars → `/admin`
 - **Demo Tenant** (if DEV_MODE=true): `demo@nikkitechlabs.com` / `Demo@1234` → `/dashboard`
 
 ---
