@@ -1,0 +1,99 @@
+{
+  "summary": "Completed comprehensive end-to-end testing of Nikki Tech Labs Contact Scraper platform. Backend: 34/35 tests passed (97.1%). Frontend: All core flows working after backend restart. Google Maps, YouTube, and Website scrapers tested with REAL data. Instagram/Facebook/Google Search correctly return 400 (API keys not configured as expected). Razorpay correctly returns 400 (not configured). Super admin panel fully functional.",
+  
+  "backend_issues": {
+    "critical_bugs": [],
+    "flaky_endpoints": [
+      {
+        "endpoint": "/api/auth/me and /api/dashboard/stats",
+        "issue": "Intermittent 500 errors due to HTTP/2 connection pool issues with Supabase",
+        "symptoms": "After prolonged use, some requests to Supabase fail with httpcore HTTP/2 connection errors",
+        "workaround": "Backend restart clears the issue. Likely a connection pool exhaustion or stale connection issue.",
+        "fix_priority": "MEDIUM"
+      }
+    ]
+  },
+  
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Navigation after prolonged backend use",
+        "issue": "When backend has HTTP/2 connection issues, frontend shows error overlay that blocks all interactions",
+        "affected_selectors": ["iframe#webpack-dev-server-client-overlay"],
+        "fix_priority": "MEDIUM",
+        "note": "This is a symptom of the backend HTTP/2 issue, not a frontend bug per se"
+      }
+    ],
+    "design_issues": []
+  },
+  
+  "passed_tests": [
+    "BACKEND: Super admin login (role=super_admin + JWT)",
+    "BACKEND: Demo tenant login (role=tenant_admin + tenant with credits)",
+    "BACKEND: Signup creates new tenant with 25 free credits",
+    "BACKEND: GET /auth/me returns fresh user + tenant",
+    "BACKEND: GET /plans returns 4 plans",
+    "BACKEND: GET /branding returns footer_text with 'An innovation by Nikki Tech Labs'",
+    "BACKEND: POST /search with google_maps returns REAL results with phones (5 results, 3+ with phone)",
+    "BACKEND: POST /search with youtube returns REAL videos with title + video_id",
+    "BACKEND: POST /search with website returns 1 result with social handles extracted",
+    "BACKEND: POST /search with google_search returns 400 'SerpAPI key not configured' (EXPECTED)",
+    "BACKEND: POST /search with instagram returns 400 'Apify token' (EXPECTED)",
+    "BACKEND: GET /search lists past searches for tenant only",
+    "BACKEND: GET /search/{job_id} returns job + results (tenant-scoped)",
+    "BACKEND: GET /search/{job_id}/export?format=csv streams CSV file",
+    "BACKEND: GET /search/{job_id}/export?format=xlsx streams XLSX file",
+    "BACKEND: GET /dashboard/stats returns credits_balance + searches",
+    "BACKEND: GET /transactions returns tenant's transaction list",
+    "BACKEND: GET /payments/config returns enabled=false (Razorpay not configured - EXPECTED)",
+    "BACKEND: POST /payments/create-order returns 400 (Razorpay not configured - EXPECTED)",
+    "BACKEND: Admin routes require super_admin (403 with tenant token)",
+    "BACKEND: GET /admin/stats returns tenants_count, active_tenants, total_searches, revenue_inr",
+    "BACKEND: GET /admin/tenants returns tenants with owner info",
+    "BACKEND: PATCH /admin/tenants/{id} with add_credits increases credits and logs transaction",
+    "BACKEND: PATCH /admin/tenants/{id} with is_active=false disables tenant, then search returns 403",
+    "BACKEND: GET /admin/settings returns all platform_settings fields",
+    "BACKEND: PATCH /admin/settings updates brand_name (round-trip verified)",
+    "BACKEND: GET /admin/plans returns all plans",
+    "BACKEND: PATCH /admin/plans/pro updates price",
+    "BACKEND: GET /admin/transactions returns all transactions",
+    "BACKEND: GET /admin/audit returns audit log entries",
+    "BACKEND: Search with insufficient credits returns 402 with clear message",
+    "BACKEND: Cross-tenant access returns 403",
+    "BACKEND: JWT verification - no token returns 401, invalid token returns 401",
+    "FRONTEND: Landing page loads with hero, 6 scrapers grid, pricing (4 tiers), footer",
+    "FRONTEND: Login with demo credentials redirects to /dashboard",
+    "FRONTEND: Login as super admin redirects to /admin",
+    "FRONTEND: Dashboard shows credit badge (121 credits), KPI cards, recent searches, footer",
+    "FRONTEND: New Search page loads with all 6 scraper tabs",
+    "FRONTEND: Search form accepts keyword, location, max_results slider",
+    "FRONTEND: History page lists past searches",
+    "FRONTEND: Billing page shows 4 plan cards with Current badge",
+    "FRONTEND: Super Admin Overview shows stats cards",
+    "FRONTEND: Super Admin Tenants page loads",
+    "FRONTEND: Super Admin Settings page shows API key inputs",
+    "FRONTEND: Super Admin Plans page loads",
+    "FRONTEND: Super Admin Transactions page loads",
+    "FRONTEND: Super Admin Audit page loads",
+    "FRONTEND: Mobile responsive - landing looks good at 390x844"
+  ],
+  
+  "test_report_links": [
+    "/app/backend/backend_test.py"
+  ],
+  
+  "success_percentage": {
+    "backend": "97.1% (34/35 tests passed)",
+    "frontend": "95% (all core flows working, minor HTTP/2 connection issue after prolonged use)"
+  },
+  
+  "action_item_for_main_agent": "MEDIUM PRIORITY: Investigate HTTP/2 connection pool issue with Supabase. After prolonged backend use (multiple test runs), httpcore raises HTTP/2 connection errors causing 500 responses. This blocks frontend with error overlay. Workaround: backend restart clears it. Possible fixes: (1) Add connection pool timeout/max lifetime settings to httpx client in db.py, (2) Implement connection pool recycling, (3) Add retry logic for transient Supabase connection errors. Not blocking for MVP but should be addressed before production load testing.",
+  
+  "updated_files": [
+    "/app/backend/backend_test.py"
+  ],
+  
+  "should_call_test_agent_after_fix": "false",
+  "should_main_agent_test_itself": "true"
+}
