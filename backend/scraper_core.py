@@ -354,8 +354,122 @@ def scrape_ecommerce(url: str) -> dict:
 
 
 # ======================================================================
-# 5. Google Search Scraper — via SerpAPI (needs paid key, plugged later)
+# 6. Apify integration — Instagram + Facebook scrapers
 # ======================================================================
+def _apify_run_sync(actor_id: str, token: str, run_input: dict,
+                   timeout: float = 90.0) -> list[dict]:
+    """Run an Apify actor synchronously and return dataset items.
+    Uses the `run-sync-get-dataset-items` endpoint which blocks until done.
+    """
+    url = f"https://api.apify.com/v2/acts/{actor_id}/run-sync-get-dataset-items"
+    with httpx.Client(timeout=timeout) as c:
+        r = c.post(url, params={"token": token, "timeout": int(timeout - 10)},
+                   json=run_input,
+                   headers={"Content-Type": "application/json"})
+        if r.status_code >= 400:
+            raise RuntimeError(f"Apify actor {actor_id} error {r.status_code}: {r.text[:300]}")
+        data = r.json()
+        # actors sometimes return single object; normalize
+        if isinstance(data, dict):
+            return [data]
+        return data or []
+
+
+def scrape_instagram(query: str, max_results: int = 20,
+                    apify_token: str | None = None) -> list[dict]:
+    """Search Instagram profiles/posts using Apify's Instagram Scraper actor.
+    `query` can be a username, hashtag or a search keyword.
+    """
+    if not apify_token:
+        raise ValueError("apify_token required")
+    log.info(f"[instagram] query='{query}' max={max_results}")
+    # apify/instagram-scraper supports: usernames, hashtags, search keywords
+    run_input = {
+        "search": query,
+        "searchType": "user",
+        "resultsType": "details",
+        "resultsLimit": max_results,
+        "addParentData": False,
+    }
+    items = _apify_run_sync("apify~instagram-scraper", apify_token, run_input, timeout=120)
+    items = items[:max_results]
+    rows: list[dict] = []
+    for it in items:
+        username = it.get("username") or it.get("ownerUsername") or it.get("name")
+        rows.append({
+            "name": it.get("fullName") or username,
+            "phone": it.get("businessPhoneNumber") or it.get("phoneNumber"),
+            "email": it.get("businessEmail") or it.get("publicEmail"),
+            "website": it.get("externalUrl") or it.get("website"),
+            "address": it.get("businessAddressJson", {}).get("street_address") if isinstance(it.get("businessAddressJson"), dict) else it.get("businessAddress"),
+            "city": it.get("businessAddressJson", {}).get("city_name") if isinstance(it.get("businessAddressJson"), dict) else None,
+            "category": it.get("businessCategoryName") or "instagram_profile",
+            "rating": None, "reviews_count": None,
+            "latitude": None, "longitude": None,
+            "instagram": f"https://instagram.com/{username}" if username else None,
+            "facebook": None, "linkedin": None, "twitter": None, "youtube": None, "whatsapp": None,
+            "extra": {
+                "username": username,
+                "followers": it.get("followersCount"),
+                "following": it.get("followsCount"),
+                "posts": it.get("postsCount"),
+                "biography": (it.get("biography") or "")[:500],
+                "profile_pic": it.get("profilePicUrl"),
+                "is_verified": it.get("verified"),
+                "is_business": it.get("isBusinessAccount"),
+            },
+        })
+    return rows
+
+
+def scrape_facebook(query: str, max_results: int = 20,
+                   apify_token: str | None = None) -> list[dict]:
+    """Search Facebook pages using Apify's Facebook Pages Scraper actor."""
+    if not apify_token:
+        raise ValueError("apify_token required")
+    log.info(f"[facebook] query='{query}' max={max_results}")
+    # apify/facebook-pages-scraper accepts URLs or search terms
+    run_input = {
+        "startUrls": [{"url": f"https://www.facebook.com/search/pages/?q={query.replace(' ', '%20')}"}],
+        "resultsLimit": max_results,
+    }
+    # Try search-based actor first; fall back to a simpler approach if it fails
+    try:
+        items = _apify_run_sync("apify~facebook-pages-scraper", apify_token,
+                                {"startUrls": [{"url": f"https://www.facebook.com/{query.strip('@').replace(' ', '')}"}],
+                                 "resultsLimit": max_results},
+                                timeout=120)
+    except Exception as e:
+        log.warning(f"facebook-pages-scraper failed: {e}. Trying facebook-search-scraper.")
+        items = _apify_run_sync("apify~facebook-search-scraper", apify_token, run_input, timeout=120)
+    items = items[:max_results]
+    rows: list[dict] = []
+    for it in items:
+        rows.append({
+            "name": it.get("title") or it.get("pageName") or it.get("name"),
+            "phone": it.get("phone") or it.get("phoneNumber"),
+            "email": it.get("email"),
+            "website": it.get("website") or it.get("websites", [None])[0] if it.get("websites") else it.get("website"),
+            "address": it.get("address") or it.get("streetAddress"),
+            "city": it.get("city"),
+            "category": (it.get("categories") or ["facebook_page"])[0] if isinstance(it.get("categories"), list) else (it.get("category") or "facebook_page"),
+            "rating": it.get("rating"),
+            "reviews_count": it.get("reviewsCount") or it.get("reviewCount"),
+            "latitude": it.get("latitude"), "longitude": it.get("longitude"),
+            "instagram": it.get("instagram"),
+            "facebook": it.get("url") or it.get("pageUrl"),
+            "linkedin": None, "twitter": it.get("twitter"), "youtube": it.get("youtube"),
+            "whatsapp": None,
+            "extra": {
+                "page_id": it.get("pageId"),
+                "likes": it.get("likesCount") or it.get("likes"),
+                "followers": it.get("followersCount"),
+                "about": (it.get("about") or it.get("description") or "")[:500],
+                "profile_pic": it.get("profilePhoto") or it.get("profilePicUrl"),
+            },
+        })
+    return rows
+
 def scrape_google_search(query: str, max_results: int = 20,
                         serpapi_key: str | None = None,
                         enrich_websites: bool = True) -> list[dict]:

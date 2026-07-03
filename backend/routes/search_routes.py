@@ -10,7 +10,8 @@ import pandas as pd
 from db import sb, get_effective_key
 from auth import get_current_user
 from scraper_core import (scrape_google_maps, scrape_youtube,
-                          scrape_website, scrape_ecommerce, scrape_google_search)
+                          scrape_website, scrape_ecommerce, scrape_google_search,
+                          scrape_instagram, scrape_facebook)
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -175,9 +176,12 @@ def _dispatch_scraper(body: SearchIn) -> list[dict]:
         if not apify:
             raise HTTPException(status_code=400,
                 detail=f"{stype.title()} scraper requires an Apify token. Super admin must add it in Settings.")
-        # Placeholder for Apify integration (add actor call here when key is present)
-        raise HTTPException(status_code=501,
-            detail=f"Apify token detected but actor integration is pending. Contact support.")
+        try:
+            if stype == "instagram":
+                return scrape_instagram(body.query, body.max_results, apify)
+            return scrape_facebook(body.query, body.max_results, apify)
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Apify actor error: {str(e)[:300]}")
     raise HTTPException(status_code=400, detail="Unknown scraper type")
 
 
