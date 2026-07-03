@@ -133,6 +133,8 @@ class SettingsUpdate(BaseModel):
     brand_name: str | None = None
     footer_text: str | None = None
     support_email: str | None = None
+    tagline: str | None = None
+    primary_color_hex: str | None = None
 
 
 @router.patch("/settings")

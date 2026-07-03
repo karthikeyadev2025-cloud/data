@@ -14,12 +14,17 @@ def list_plans():
 
 @router.get("/branding")
 def branding():
-    r = sb().table("platform_settings").select("brand_name,footer_text,support_email").limit(1).execute()
+    r = sb().table("platform_settings").select("brand_name,footer_text,tagline,primary_color_hex").limit(1).execute()
     if not r.data:
         return {"brand_name": "Nikki Tech Labs",
                 "footer_text": "An innovation by Nikki Tech Labs",
-                "support_email": "adexosindia@gmail.com"}
-    return r.data[0]
+                "tagline": "Real business contacts. One dashboard. Six scrapers.",
+                "primary_color_hex": "#0EA5A4"}
+    d = r.data[0]
+    # sensible defaults if newly-added columns are null
+    d["tagline"] = d.get("tagline") or "Real business contacts. One dashboard. Six scrapers."
+    d["primary_color_hex"] = d.get("primary_color_hex") or "#0EA5A4"
+    return d
 
 
 @router.get("/dashboard/stats")

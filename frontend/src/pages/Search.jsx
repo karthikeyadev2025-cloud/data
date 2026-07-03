@@ -117,10 +117,10 @@ export default function SearchPage() {
             <div>
               {scraperType === 'google_maps' && '1 credit per business returned. Auto-enriches websites for emails + social handles.'}
               {scraperType === 'youtube' && '1 credit per video. Fetches title, views, likes, channel.'}
-              {scraperType === 'google_search' && 'Requires SerpAPI key (super admin adds in Settings).'}
+              {scraperType === 'google_search' && 'Search top web results with contact enrichment.'}
               {scraperType === 'website' && 'Extract emails, phone, socials from any public URL.'}
               {scraperType === 'ecommerce' && 'Extract product name, price, brand from any product page.'}
-              {(scraperType === 'instagram' || scraperType === 'facebook') && 'Requires Apify token (super admin adds in Settings).'}
+              {(scraperType === 'instagram' || scraperType === 'facebook') && 'Search public profiles / pages with contact info.'}
             </div>
           </div>
         </CardContent>

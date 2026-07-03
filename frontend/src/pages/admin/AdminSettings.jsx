@@ -96,14 +96,26 @@ export default function AdminSettings() {
 
         <Card className="card-elev">
           <CardContent className="p-6">
-            <div className="flex items-center gap-2 mb-4"><Sparkles className="h-4 w-4 text-primary" /><h3 className="font-display font-semibold">Branding & Plan</h3></div>
+            <div className="flex items-center gap-2 mb-4"><Sparkles className="h-4 w-4 text-primary" /><h3 className="font-display font-semibold">Branding & Theme</h3></div>
             <div className="space-y-4">
               {BRAND.map((b) => (
                 <div key={b.key}>
                   <Label htmlFor={b.key}>{b.label}</Label>
-                  <Input id={b.key} type={b.type} value={values[b.key] || (b.type === 'number' ? 0 : '')}
-                    onChange={(e) => set(b.key, b.type === 'number' ? parseInt(e.target.value || '0') : e.target.value)}
-                    data-testid={`admin-brand-${b.key}`} />
+                  {b.type === 'color' ? (
+                    <div className="flex items-center gap-3 mt-1">
+                      <input id={b.key} type="color" value={values[b.key] || '#0EA5A4'}
+                        onChange={(e) => set(b.key, e.target.value)}
+                        className="h-10 w-16 rounded-md border border-input cursor-pointer"
+                        data-testid={`admin-brand-${b.key}`} />
+                      <Input value={values[b.key] || '#0EA5A4'} onChange={(e) => set(b.key, e.target.value)}
+                        placeholder="#0EA5A4" className="max-w-[140px] font-mono" />
+                      <span className="text-xs text-muted-foreground">Applies platform-wide on save.</span>
+                    </div>
+                  ) : (
+                    <Input id={b.key} type={b.type} value={values[b.key] || (b.type === 'number' ? 0 : '')}
+                      onChange={(e) => set(b.key, b.type === 'number' ? parseInt(e.target.value || '0') : e.target.value)}
+                      data-testid={`admin-brand-${b.key}`} />
+                  )}
                 </div>
               ))}
             </div>

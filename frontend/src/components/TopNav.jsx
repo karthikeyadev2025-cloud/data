@@ -1,51 +1,46 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Logo } from './Logo';
 import { useAuth } from '../lib/auth';
+import { useBrand } from '../lib/brand';
 import { Button } from './ui/button';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 export function TopNav({ variant = 'marketing' }) {
   const { user, logout } = useAuth();
+  const { brand_name } = useBrand();
   const [open, setOpen] = useState(false);
-  const loc = useLocation();
-  const nav = useNavigate();
 
-  const links = variant === 'marketing'
-    ? [
-        { label: 'Scrapers', href: '/#scrapers' },
-        { label: 'Pricing', href: '/#pricing' },
-        { label: 'How it works', href: '/#how' },
-      ]
-    : [];
+  const links = variant === 'marketing' ? [
+    { label: 'Scrapers', href: '/#scrapers' },
+    { label: 'Pricing', href: '/#pricing' },
+    { label: 'How it works', href: '/#how' },
+    { label: 'About', href: '/about' },
+  ] : [];
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-border" data-testid="top-nav">
       <div className="container-wide h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Logo />
+          <Logo brand={brand_name} />
           <nav className="hidden md:flex items-center gap-6 text-sm">
             {links.map((l) => (
-              <a key={l.label} href={l.href} className="text-muted-foreground hover:text-foreground transition-colors">{l.label}</a>
+              l.href.startsWith('/#') ?
+                <a key={l.label} href={l.href} className="text-muted-foreground hover:text-foreground transition-colors">{l.label}</a> :
+                <Link key={l.label} to={l.href} className="text-muted-foreground hover:text-foreground transition-colors">{l.label}</Link>
             ))}
           </nav>
         </div>
         <div className="hidden md:flex items-center gap-2">
           {user ? (
             <>
-              <Button asChild variant="ghost" size="sm" data-testid="nav-dashboard-btn">
-                <Link to={user.role === 'super_admin' ? '/admin' : '/dashboard'}>Dashboard</Link>
-              </Button>
+              <Button asChild variant="ghost" size="sm" data-testid="nav-dashboard-btn"><Link to={user.role === 'super_admin' ? '/admin' : '/dashboard'}>Dashboard</Link></Button>
               <Button size="sm" onClick={logout} variant="outline" data-testid="nav-logout-btn">Sign out</Button>
             </>
           ) : (
             <>
-              <Button asChild variant="ghost" size="sm" data-testid="nav-signin-btn">
-                <Link to="/login">Sign in</Link>
-              </Button>
-              <Button asChild size="sm" data-testid="nav-signup-btn" className="transition-btn lift-1">
-                <Link to="/login?mode=signup">Get started free</Link>
-              </Button>
+              <Button asChild variant="ghost" size="sm" data-testid="nav-signin-btn"><Link to="/login">Sign in</Link></Button>
+              <Button asChild size="sm" data-testid="nav-signup-btn" className="transition-btn lift-1"><Link to="/login?mode=signup">Get started free</Link></Button>
             </>
           )}
         </div>
@@ -57,7 +52,9 @@ export function TopNav({ variant = 'marketing' }) {
         <div className="md:hidden border-t border-border bg-white">
           <div className="container-wide py-4 flex flex-col gap-3">
             {links.map((l) => (
-              <a key={l.label} href={l.href} onClick={() => setOpen(false)} className="text-sm text-muted-foreground py-1">{l.label}</a>
+              l.href.startsWith('/#') ?
+                <a key={l.label} href={l.href} onClick={() => setOpen(false)} className="text-sm text-muted-foreground py-1">{l.label}</a> :
+                <Link key={l.label} to={l.href} onClick={() => setOpen(false)} className="text-sm text-muted-foreground py-1">{l.label}</Link>
             ))}
             {user ? (
               <>

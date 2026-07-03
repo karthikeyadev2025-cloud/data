@@ -1,18 +1,20 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
+import { useBrand } from '../lib/brand';
 import { Logo } from './Logo';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { LayoutDashboard, Search, History, CreditCard, Settings, Users, LineChart, ClipboardList, ShieldCheck, LogOut, Menu, X, Package, Coins } from 'lucide-react';
+import { LayoutDashboard, Search, History, CreditCard, Settings, Users, LineChart, ClipboardList, LogOut, Menu, Package, Coins, LifeBuoy, MessageSquare } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { useState } from 'react';
-import { money, fmtNum } from '../lib/api';
+import { fmtNum } from '../lib/api';
 
 const tenantNav = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, testid: 'nav-dashboard' },
   { to: '/search',    label: 'New Search', icon: Search,          testid: 'nav-search' },
   { to: '/history',   label: 'History',    icon: History,         testid: 'nav-history' },
   { to: '/billing',   label: 'Billing',    icon: CreditCard,      testid: 'nav-billing' },
+  { to: '/support',   label: 'Support',    icon: LifeBuoy,        testid: 'nav-support' },
 ];
 
 const adminNav = [
@@ -20,6 +22,7 @@ const adminNav = [
   { to: '/admin/tenants',      label: 'Tenants',       icon: Users,         testid: 'anav-tenants' },
   { to: '/admin/plans',        label: 'Plans',         icon: Package,       testid: 'anav-plans' },
   { to: '/admin/settings',     label: 'Settings',      icon: Settings,      testid: 'anav-settings' },
+  { to: '/admin/tickets',      label: 'Support',       icon: MessageSquare, testid: 'anav-tickets' },
   { to: '/admin/transactions', label: 'Transactions',  icon: Coins,         testid: 'anav-tx' },
   { to: '/admin/audit',        label: 'Audit Log',     icon: ClipboardList, testid: 'anav-audit' },
 ];
@@ -43,13 +46,13 @@ function NavList({ items, onNavigate }) {
 
 export function DashboardShell({ children, admin = false }) {
   const { user, tenant, logout } = useAuth();
+  const { brand_name } = useBrand();
   const [open, setOpen] = useState(false);
   const items = admin ? adminNav : tenantNav;
   const scopeClass = admin ? 'admin-scope' : '';
 
   return (
     <div className={`min-h-screen bg-background ${scopeClass}`}>
-      {/* Top bar */}
       <header className="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-border">
         <div className="h-16 px-4 sm:px-6 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -58,12 +61,12 @@ export function DashboardShell({ children, admin = false }) {
                 <Button variant="ghost" size="sm" className="lg:hidden" data-testid="shell-menu-btn"><Menu className="h-5 w-5" /></Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72">
-                <div className="mb-6"><Logo linkTo={admin ? '/admin' : '/dashboard'} /></div>
+                <div className="mb-6"><Logo brand={brand_name} linkTo={admin ? '/admin' : '/dashboard'} /></div>
                 {admin && <Badge variant="secondary" className="mb-4 bg-amber-100 text-amber-900">Super Admin</Badge>}
                 <NavList items={items} onNavigate={() => setOpen(false)} />
               </SheetContent>
             </Sheet>
-            <Logo linkTo={admin ? '/admin' : '/dashboard'} />
+            <Logo brand={brand_name} linkTo={admin ? '/admin' : '/dashboard'} />
             {admin && <Badge variant="secondary" className="bg-amber-100 text-amber-900 hidden sm:inline-flex" data-testid="admin-badge">Super Admin</Badge>}
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
@@ -75,9 +78,7 @@ export function DashboardShell({ children, admin = false }) {
               </div>
             )}
             {!admin && (
-              <Button asChild size="sm" className="hidden sm:inline-flex transition-btn lift-1" data-testid="topbar-buy-credits">
-                <Link to="/billing">Buy credits</Link>
-              </Button>
+              <Button asChild size="sm" className="hidden sm:inline-flex transition-btn lift-1" data-testid="topbar-buy-credits"><Link to="/billing">Buy credits</Link></Button>
             )}
             <div className="flex items-center gap-2 pl-2 border-l border-border">
               <div className="hidden sm:block text-right leading-tight">
@@ -91,7 +92,6 @@ export function DashboardShell({ children, admin = false }) {
       </header>
 
       <div className="flex">
-        {/* Sidebar (desktop) */}
         <aside className="hidden lg:flex w-64 shrink-0 border-r border-border bg-white/40 min-h-[calc(100vh-4rem)] p-4 flex-col">
           <NavList items={items} />
           <div className="mt-auto text-xs text-muted-foreground pt-6">
@@ -99,9 +99,7 @@ export function DashboardShell({ children, admin = false }) {
           </div>
         </aside>
 
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

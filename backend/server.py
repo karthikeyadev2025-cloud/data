@@ -21,6 +21,7 @@ from routes.search_routes import router as search_router
 from routes.tenant_routes import router as tenant_router
 from routes.admin_routes import router as admin_router
 from routes.payment_routes import router as payment_router
+from routes.support_routes import router as support_router, admin_router as support_admin_router
 from db import reset_sb
 
 app = FastAPI(title="Nikki Tech Labs API", version="1.0.0")
@@ -43,6 +44,8 @@ api.include_router(search_router)
 api.include_router(tenant_router)
 api.include_router(admin_router)
 api.include_router(payment_router)
+api.include_router(support_router)
+api.include_router(support_admin_router)
 
 app.include_router(api)
 
