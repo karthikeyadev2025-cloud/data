@@ -75,7 +75,7 @@ export default function Login() {
             ))}
           </div>
         </motion.div>
-        <div className="text-xs text-muted-foreground">An innovation by Nikki Tech Labs</div>
+        <div className="text-xs text-muted-foreground">An innovation by NIKKI TECH LABS</div>
       </div>
 
       {/* Right — auth card */}
@@ -83,7 +83,7 @@ export default function Login() {
         <div className="w-full max-w-md">
           <div className="lg:hidden mb-8"><Logo size="lg" /></div>
           <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">{tab === 'signup' ? 'Create your account' : 'Sign in'}</h1>
-          <p className="text-muted-foreground mt-1">Access your Nikki Tech Labs dashboard.</p>
+          <p className="text-muted-foreground mt-1">Access your INeedLeads dashboard.</p>
 
           <Tabs value={tab} onValueChange={setTab} className="mt-6">
             <TabsList className="grid grid-cols-2 w-full">
@@ -116,7 +116,7 @@ export default function Login() {
                 </div>
                 <div>
                   <Label htmlFor="company">Company (optional)</Label>
-                  <Input id="company" name="company" data-testid="signup-company-input" placeholder="e.g. Nikki Tech Labs" />
+                  <Input id="company" name="company" data-testid="signup-company-input" placeholder="e.g. INeedLeads" />
                 </div>
                 <div>
                   <Label htmlFor="email2">Email</Label>

@@ -1,5 +1,5 @@
 """
-Nikki Tech Labs Contact Scraper — Comprehensive Backend API Test Suite
+INeedLeads Contact Scraper — Comprehensive Backend API Test Suite
 Tests all endpoints with real credentials and validates responses.
 """
 import requests
@@ -13,7 +13,7 @@ BASE_URL = "https://contact-scraper-13.preview.emergentagent.com/api"
 # Test credentials
 SUPER_ADMIN_EMAIL = "adexosindia@gmail.com"
 SUPER_ADMIN_PASSWORD = "Karthi@20252026"
-DEMO_EMAIL = "demo@nikkitechlabs.com"
+DEMO_EMAIL = "demo@ineedleads.com"
 DEMO_PASSWORD = "Demo@1234"
 
 class APITester:
@@ -83,7 +83,7 @@ class APITester:
 
     def run_all_tests(self):
         print("=" * 80)
-        print("NIKKI TECH LABS CONTACT SCRAPER - BACKEND API TEST SUITE")
+        print("INEEDLEADS CONTACT SCRAPER - BACKEND API TEST SUITE")
         print("=" * 80)
 
         # ========== AUTH TESTS ==========
@@ -164,7 +164,7 @@ class APITester:
         self.test(
             "GET /branding",
             "GET", "branding", 200,
-            validate_fn=lambda r: "Nikki Tech Labs" in r.get("footer_text", "")
+            validate_fn=lambda r: "NIKKI TECH LABS" in r.get("footer_text", "")
         )
 
         # Test 9: GET /dashboard/stats

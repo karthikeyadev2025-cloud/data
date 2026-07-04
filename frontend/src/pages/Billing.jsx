@@ -46,7 +46,7 @@ export default function Billing() {
       const r = await api.post('/payments/create-order', { credits });
       const options = {
         key: r.data.razorpay_key_id, amount: r.data.amount, currency: 'INR',
-        name: 'Nikki Tech Labs', description: `${r.data.credits} credits`,
+        name: 'INeedLeads', description: `${r.data.credits} credits`,
         order_id: r.data.order_id,
         handler: async (resp) => {
           try {

@@ -226,7 +226,7 @@ def export_search(job_id: str, format: str = Query(default="csv"),
                "instagram", "facebook", "linkedin", "twitter", "youtube", "whatsapp"]
     data = [{c: r.get(c) for c in df_cols} for r in rows]
 
-    fname_base = f"nikki-scraper-{(job.get('scraper_type') or 'search')}-{job_id[:8]}"
+    fname_base = f"ineedleads-scraper-{(job.get('scraper_type') or 'search')}-{job_id[:8]}"
 
     if format == "xlsx":
         df = pd.DataFrame(data, columns=df_cols)

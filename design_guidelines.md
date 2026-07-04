@@ -1,7 +1,7 @@
 {
   "brand": {
-    "name": "Nikki Tech Labs",
-    "footer_text": "An innovation by Nikki Tech Labs",
+    "name": "INeedLeads",
+    "footer_text": "An innovation by NIKKI TECH LABS",
     "brand_attributes": [
       "enterprise-grade",
       "trustworthy",
@@ -298,7 +298,7 @@
           "name": "Footer",
           "layout": "Columns: Product, Company, Legal; bottom line includes footer_text",
           "components": ["separator"],
-          "notes": "Always show: 'An innovation by Nikki Tech Labs'"
+          "notes": "Always show: 'An innovation by NIKKI TECH LABS'"
         }
       ]
     },

@@ -26,7 +26,7 @@ def ensure_super_admin() -> None:
         return
     c.table("users").insert({
         "email": email,
-        "full_name": "Nikki Tech Labs Super Admin",
+        "full_name": "INeedLeads Super Admin",
         "password_hash": hash_password(password),
         "role": "super_admin",
         "tenant_id": None,
@@ -40,7 +40,7 @@ def ensure_dev_tenant() -> None:
     if os.environ.get("DEV_MODE", "false").lower() != "true":
         return
     c = sb()
-    demo_email = "demo@nikkitechlabs.com"
+    demo_email = "demo@ineedleads.com"
     exist = c.table("users").select("*").eq("email", demo_email).limit(1).execute()
     if exist.data:
         return

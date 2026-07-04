@@ -26,7 +26,7 @@ export default function SearchDetail() {
       .then((blob) => {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `nikki-scraper-${id.slice(0,8)}.${fmt}`;
+        a.download = `ineedleads-scraper-${id.slice(0,8)}.${fmt}`;
         a.click();
       });
   };

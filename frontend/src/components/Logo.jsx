@@ -29,11 +29,11 @@ export function LogoMark({ className = 'h-9 w-9' }) {
   );
 }
 
-export function Logo({ size = 'md', linkTo = '/', brand = 'Nikki' }) {
+export function Logo({ size = 'md', linkTo = '/', brand = 'INeedLeads' }) {
   const nameSize = size === 'lg' ? 'text-2xl' : size === 'sm' ? 'text-base' : 'text-lg';
   const boxSize = size === 'lg' ? 'h-10 w-10' : size === 'sm' ? 'h-7 w-7' : 'h-9 w-9';
   // Split into label and tld-like dot for style
-  const label = (brand || 'Nikki').trim();
+  const label = (brand || 'INeedLeads').trim();
   const el = (
     <span className="flex items-center gap-2.5">
       <LogoMark className={boxSize} />

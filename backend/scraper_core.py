@@ -1,5 +1,5 @@
 """
-Nikki Tech Labs — Unified Scraper Core
+INeedLeads — Unified Scraper Core
 All scraper modules in one place. Every function returns list[dict] with a
 normalized shape so results can be stored in `search_results` table cleanly.
 
@@ -40,7 +40,7 @@ SOCIAL_PATTERNS = {
     "whatsapp":  re.compile(r"https?://(?:wa\.me|api\.whatsapp\.com|whatsapp\.com/send)[A-Za-z0-9_./?=&+\-]*", re.I),
 }
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (compatible; NikkiScraperBot/1.0; +https://nikki-tech-labs)",
+    "User-Agent": "Mozilla/5.0 (compatible; INeedLeadsScraperBot/1.0; +https://ineedleads.com)",
     "Accept": "text/html,application/xhtml+xml",
     "Accept-Language": "en-US,en;q=0.9",
 }

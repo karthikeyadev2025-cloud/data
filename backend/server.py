@@ -1,4 +1,4 @@
-"""Nikki Tech Labs — FastAPI backend entry."""
+"""INeedLeads — FastAPI backend entry."""
 from fastapi import FastAPI, APIRouter, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -24,14 +24,14 @@ from routes.payment_routes import router as payment_router
 from routes.support_routes import router as support_router, admin_router as support_admin_router
 from db import reset_sb
 
-app = FastAPI(title="Nikki Tech Labs API", version="1.0.0")
+app = FastAPI(title="INeedLeads API", version="1.0.0")
 
 api = APIRouter(prefix="/api")
 
 
 @api.get("/")
 def root():
-    return {"ok": True, "name": "Nikki Tech Labs API", "version": "1.0.0"}
+    return {"ok": True, "name": "INeedLeads API", "version": "1.0.0"}
 
 
 @api.get("/health")
@@ -76,7 +76,7 @@ async def _supabase_reset_on_transient_errors(request: Request, call_next):
 
 @app.on_event("startup")
 def _startup():
-    log.info("Starting Nikki Tech Labs API...")
+    log.info("Starting INeedLeads API...")
     try:
         from bootstrap import ensure_super_admin, ensure_dev_tenant
         ensure_super_admin()

@@ -1,5 +1,5 @@
 """
-POC — Nikki Tech Labs Contact Scraper
+POC — INeedLeads Contact Scraper
 Proves the core scraping pipeline works on REAL data (no mocks).
 
 Runs:

@@ -1,5 +1,5 @@
 -- =====================================================
--- NIKKI TECH LABS — CONTACT DATA SCRAPER SAAS
+-- INEEDLEADS — CONTACT DATA SCRAPER SAAS
 -- Supabase (PostgreSQL) Schema
 -- Run this in Supabase SQL Editor (one-shot)
 -- =====================================================
@@ -22,8 +22,8 @@ create table if not exists platform_settings (
   google_oauth_client_id      text,
   google_oauth_client_secret  text,
   free_trial_credits  integer default 25,
-  brand_name          text default 'Nikki Tech Labs',
-  footer_text         text default 'An innovation by Nikki Tech Labs',
+  brand_name          text default 'INeedLeads',
+  footer_text         text default 'An innovation by NIKKI TECH LABS',
   support_email       text default 'adexosindia@gmail.com',
   created_at          timestamptz default now(),
   updated_at          timestamptz default now()
@@ -31,7 +31,7 @@ create table if not exists platform_settings (
 
 -- Seed initial row
 insert into platform_settings (id, free_trial_credits, brand_name, footer_text)
-select uuid_generate_v4(), 25, 'Nikki Tech Labs', 'An innovation by Nikki Tech Labs'
+select uuid_generate_v4(), 25, 'INeedLeads', 'An innovation by NIKKI TECH LABS'
 where not exists (select 1 from platform_settings);
 
 -- =====================================================

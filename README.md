@@ -1,4 +1,4 @@
-# Nikki Tech Labs — Contact Data Scraper (SaaS)
+# INeedLeads — Contact Data Scraper (SaaS)
 
 Multi-tenant SaaS platform for real business contact data scraping.
 
@@ -74,7 +74,7 @@ yarn start
 
 ### 5) Test credentials
 - **Super Admin**: set via `SUPER_ADMIN_EMAIL` + `SUPER_ADMIN_PASSWORD` env vars → `/admin`
-- **Demo Tenant** (if DEV_MODE=true): `demo@nikkitechlabs.com` / `Demo@1234` → `/dashboard`
+- **Demo Tenant** (if DEV_MODE=true): `demo@ineedleads.com` / `Demo@1234` → `/dashboard`
 
 ---
 
@@ -139,4 +139,4 @@ After backend deploys, update the Vercel env var `REACT_APP_BACKEND_URL` with yo
 
 ---
 
-© Nikki Tech Labs. Built with ❤️ in Chennai / Hyderabad / Bangalore.
+© INeedLeads by NIKKI TECH LABS. Built with ❤️ in Chennai / Hyderabad / Bangalore.

@@ -72,8 +72,8 @@ def get_platform_settings() -> dict:
     if res.data:
         return res.data[0]
     ins = sb().table("platform_settings").insert({
-        "brand_name": "Nikki Tech Labs",
-        "footer_text": "An innovation by Nikki Tech Labs",
+        "brand_name": "INeedLeads",
+        "footer_text": "An innovation by NIKKI TECH LABS",
         "free_trial_credits": 25,
     }).execute()
     return ins.data[0]

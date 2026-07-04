@@ -2,8 +2,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { api } from './api';
 
 const BrandCtx = createContext({
-  brand_name: 'Nikki',
-  footer_text: 'An innovation by our team',
+  brand_name: 'INeedLeads',
+  footer_text: 'An innovation by NIKKI TECH LABS',
   tagline: 'Real business contacts. One dashboard. Six scrapers.',
   primary_color_hex: '#0EA5A4',
 });
@@ -31,8 +31,8 @@ function hexToHsl(hex) {
 
 export function BrandProvider({ children }) {
   const [brand, setBrand] = useState({
-    brand_name: 'Nikki',
-    footer_text: 'An innovation by our team',
+    brand_name: 'INeedLeads',
+    footer_text: 'An innovation by NIKKI TECH LABS',
     tagline: 'Real business contacts. One dashboard. Six scrapers.',
     primary_color_hex: '#0EA5A4',
   });
@@ -41,8 +41,8 @@ export function BrandProvider({ children }) {
     api.get('/branding').then((r) => {
       const b = r.data || {};
       const merged = {
-        brand_name: b.brand_name || 'Nikki',
-        footer_text: b.footer_text || 'An innovation by our team',
+        brand_name: b.brand_name || 'INeedLeads',
+        footer_text: b.footer_text || 'An innovation by NIKKI TECH LABS',
         tagline: b.tagline || 'Real business contacts. One dashboard. Six scrapers.',
         primary_color_hex: b.primary_color_hex || '#0EA5A4',
       };

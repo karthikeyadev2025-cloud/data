@@ -56,7 +56,7 @@ export default function SearchPage() {
       .then((blob) => {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `nikki-scraper-${jobId.slice(0,8)}.${fmt}`;
+        a.download = `ineedleads-scraper-${jobId.slice(0,8)}.${fmt}`;
         a.click();
       })
       .catch(() => toast.error('Export failed'));

@@ -1,0 +1,30 @@
+{
+  "short_name": "INeedLeads",
+  "name": "INeedLeads — Real Business Contacts. One Dashboard. Six Scrapers.",
+  "description": "INeedLeads is India's #1 B2B lead generation platform. Extract real business contacts from Google Maps, YouTube, Instagram, Facebook, Google Search & any website. Built for agencies, startups & SMBs.",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0EA5A4",
+  "background_color": "#ffffff",
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "orientation": "any"
+}

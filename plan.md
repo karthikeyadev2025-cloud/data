@@ -1,4 +1,4 @@
-# plan.md — Nikki Tech Labs Contact Scraper (Multi-tenant SaaS)
+# plan.md — INeedLeads Contact Scraper (Multi-tenant SaaS)
 
 ## 1) Objectives
 - Deliver a **production-ready MVP** of a multi-tenant lead/contact scraping SaaS targeted at Indian (South Indian) SMB/agency users.
@@ -17,7 +17,7 @@
   - Backend: Render/Railway/Fly (recommended long-lived server for scraping)
   - Database: Supabase (PostgreSQL)
 - Ensure enterprise UI/UX and branding:
-  - Footer: **“An innovation by Nikki Tech Labs”**
+  - Footer: **“An innovation by NIKKI TECH LABS”**
   - Tenant accent: teal; Admin accent: amber
   - Mobile responsive, clean tables and exports
 

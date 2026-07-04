@@ -16,8 +16,8 @@ def list_plans():
 def branding():
     r = sb().table("platform_settings").select("brand_name,footer_text,tagline,primary_color_hex").limit(1).execute()
     if not r.data:
-        return {"brand_name": "Nikki Tech Labs",
-                "footer_text": "An innovation by Nikki Tech Labs",
+        return {"brand_name": "INeedLeads",
+                "footer_text": "An innovation by NIKKI TECH LABS",
                 "tagline": "Real business contacts. One dashboard. Six scrapers.",
                 "primary_color_hex": "#0EA5A4"}
     d = r.data[0]
