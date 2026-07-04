@@ -1,13 +1,16 @@
 """INeedLeads — FastAPI backend entry."""
+import sys
+from pathlib import Path
+ROOT_DIR = Path(__file__).parent
+sys.path.append(str(ROOT_DIR))
+
 from fastapi import FastAPI, APIRouter, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 import os
 import logging
-from pathlib import Path
 
-ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
 logging.basicConfig(
