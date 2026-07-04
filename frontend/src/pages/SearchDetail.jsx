@@ -8,15 +8,24 @@ import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Skeleton } from '../components/ui/skeleton';
 import { api, API, fmtDate } from '../lib/api';
-import { Download, ArrowLeft } from 'lucide-react';
+import { Download, ArrowLeft, ShieldCheck, Database } from 'lucide-react';
 
 export default function SearchDetail() {
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [verifying, setVerifying] = useState(false);
+  const [exportingSheet, setExportingSheet] = useState(false);
+
+  const loadData = () => {
+    api.get(`/search/${id}`)
+      .then((r) => setData(r.data))
+      .catch(() => toast.error('Failed to load'))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    api.get(`/search/${id}`).then((r) => setData(r.data)).catch(() => toast.error('Failed to load')).finally(() => setLoading(false));
+    loadData();
   }, [id]);
 
   const download = (fmt) => {
@@ -31,7 +40,40 @@ export default function SearchDetail() {
       });
   };
 
+  const handleExportGoogleSheet = () => {
+    setExportingSheet(true);
+    api.get(`/search/${id}/export?format=gsheet`)
+      .then((r) => {
+        if (r.data?.url) {
+          window.open(r.data.url, '_blank');
+          toast.success('Spreadsheet exported and opened successfully!');
+        } else {
+          toast.error('Failed to export to Google Sheets');
+        }
+      })
+      .catch((err) => {
+        const msg = err.response?.data?.detail || 'Failed to export to Google Sheets';
+        toast.error(msg);
+      })
+      .finally(() => setExportingSheet(false));
+  };
+
+  const handleVerifyEmails = () => {
+    setVerifying(true);
+    api.post(`/search/${id}/verify-emails`)
+      .then((r) => {
+        toast.success(`Verification complete! Verified ${r.data.verified} emails.`);
+        loadData();
+      })
+      .catch((err) => {
+        const msg = err.response?.data?.detail || 'Verification failed';
+        toast.error(msg);
+      })
+      .finally(() => setVerifying(false));
+  };
+
   const job = data?.job;
+  const emailsCount = (data?.results || []).filter(r => r.email).length;
 
   return (
     <DashboardShell>
@@ -50,7 +92,31 @@ export default function SearchDetail() {
               <h1 className="font-display text-xl sm:text-2xl font-semibold tracking-tight mt-2">{job.query}</h1>
               <div className="text-sm text-muted-foreground mt-1">{job.location || '—'} · {fmtDate(job.created_at)} · {job.results_count} results · {job.credits_used} credits</div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {emailsCount > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleVerifyEmails}
+                  disabled={verifying}
+                  className="border-primary/40 text-primary hover:bg-primary/5 hover:text-primary"
+                  data-testid="detail-verify-emails"
+                >
+                  <ShieldCheck className="h-4 w-4 mr-1.5" />
+                  {verifying ? 'Verifying...' : 'Verify Emails'}
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportGoogleSheet}
+                disabled={exportingSheet}
+                className="border-green-600/40 text-green-600 hover:bg-green-50 hover:text-green-700"
+                data-testid="detail-export-gsheet"
+              >
+                <Database className="h-4 w-4 mr-1.5" />
+                {exportingSheet ? 'Exporting...' : 'Google Sheets'}
+              </Button>
               <Button variant="outline" size="sm" onClick={() => download('csv')} data-testid="detail-export-csv"><Download className="h-4 w-4 mr-1.5" /> CSV</Button>
               <Button variant="outline" size="sm" onClick={() => download('xlsx')} data-testid="detail-export-xlsx"><Download className="h-4 w-4 mr-1.5" /> XLSX</Button>
             </div>
@@ -64,3 +130,4 @@ export default function SearchDetail() {
     </DashboardShell>
   );
 }
+

@@ -135,6 +135,7 @@ class SettingsUpdate(BaseModel):
     support_email: str | None = None
     tagline: str | None = None
     primary_color_hex: str | None = None
+    google_service_account_json: str | None = None
 
 
 @router.patch("/settings")

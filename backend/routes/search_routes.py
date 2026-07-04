@@ -228,6 +228,20 @@ def export_search(job_id: str, format: str = Query(default="csv"),
 
     fname_base = f"ineedleads-scraper-{(job.get('scraper_type') or 'search')}-{job_id[:8]}"
 
+    # Google Sheets export
+    if format == "gsheet":
+        sa_json = get_effective_key("google_service_account_json")
+        if not sa_json:
+            raise HTTPException(status_code=400,
+                detail="Google Sheets export requires a Google Service Account. Admin must configure it in Settings.")
+        try:
+            from gsheets import export_to_sheet
+            title = f"INeedLeads — {job.get('query', 'Export')} ({job.get('scraper_type', '')})"
+            url = export_to_sheet(rows, title, sa_json, share_email=user.get("email"))
+            return {"url": url}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Google Sheets error: {str(e)[:300]}")
+
     if format == "xlsx":
         df = pd.DataFrame(data, columns=df_cols)
         buf = io.BytesIO()
@@ -251,3 +265,44 @@ def export_search(job_id: str, format: str = Query(default="csv"),
         media_type="text/csv",
         headers={"Content-Disposition": f'attachment; filename="{fname_base}.csv"'},
     )
+
+
+@router.post("/{job_id}/verify-emails")
+def verify_emails(job_id: str, user: dict = Depends(get_current_user)):
+    """Verify all emails in a search job's results via SMTP check."""
+    job_res = sb().table("search_jobs").select("*").eq("id", job_id).limit(1).execute()
+    if not job_res.data:
+        raise HTTPException(status_code=404, detail="Search not found")
+    job = job_res.data[0]
+    if user["role"] != "super_admin" and job["tenant_id"] != user.get("tenant_id"):
+        raise HTTPException(status_code=403, detail="Not your search")
+
+    results = sb().table("search_results").select("id,email,extra").eq("job_id", job_id).execute()
+    rows = results.data or []
+
+    # Collect emails to verify
+    to_verify = [(r["id"], r["email"]) for r in rows if r.get("email")]
+    if not to_verify:
+        return {"verified": 0, "summary": {"valid": 0, "invalid": 0, "catch_all": 0, "unknown": 0}}
+
+    from email_verifier import verify_email as _verify
+
+    summary = {"valid": 0, "invalid": 0, "catch_all": 0, "unknown": 0}
+    for result_id, email in to_verify:
+        vr = _verify(email)
+        status = vr["status"]
+        summary[status] = summary.get(status, 0) + 1
+
+        # Get current extra jsonb, merge verification status
+        row = next((r for r in rows if r["id"] == result_id), None)
+        extra = row.get("extra") or {} if row else {}
+        if isinstance(extra, str):
+            import json
+            extra = json.loads(extra)
+        extra["email_status"] = status
+        extra["email_mx"] = vr.get("mx_host")
+
+        sb().table("search_results").update({"extra": extra}).eq("id", result_id).execute()
+
+    return {"verified": len(to_verify), "summary": summary}
+

@@ -17,6 +17,8 @@ import SearchDetail from '@/pages/SearchDetail';
 import Billing from '@/pages/Billing';
 import Support from '@/pages/Support';
 import SupportDetail from '@/pages/SupportDetail';
+import Lists from '@/pages/Lists';
+import ListDetail from '@/pages/ListDetail';
 import NotFound from '@/pages/NotFound';
 
 import AdminDashboard from '@/pages/admin/AdminDashboard';
@@ -44,6 +46,8 @@ function App() {
             <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
             <Route path="/search/:id" element={<ProtectedRoute><SearchDetail /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+            <Route path="/lists" element={<ProtectedRoute><Lists /></ProtectedRoute>} />
+            <Route path="/lists/:id" element={<ProtectedRoute><ListDetail /></ProtectedRoute>} />
             <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
             <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
 

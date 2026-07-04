@@ -19,6 +19,7 @@ const SECTIONS = [
   { key: 'razorpay_key_secret',       label: 'Razorpay Key Secret',        hint: 'Secret used to sign & verify orders.', secret: true },
   { key: 'google_oauth_client_id',    label: 'Google OAuth Client ID',     hint: 'For “Sign in with Google” in production.', secret: false },
   { key: 'google_oauth_client_secret',label: 'Google OAuth Client Secret', hint: 'Server-side only. Never expose to frontend.', secret: true },
+  { key: 'google_service_account_json',label: 'Google Sheets Service Account JSON', hint: 'Paste the entire contents of the Service Account credentials .json file here.', secret: true },
 ];
 
 const BRAND = [

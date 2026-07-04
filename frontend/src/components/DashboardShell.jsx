@@ -13,6 +13,7 @@ const tenantNav = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, testid: 'nav-dashboard' },
   { to: '/search',    label: 'New Search', icon: Search,          testid: 'nav-search' },
   { to: '/history',   label: 'History',    icon: History,         testid: 'nav-history' },
+  { to: '/lists',     label: 'My Lists',   icon: ClipboardList,   testid: 'nav-lists' },
   { to: '/billing',   label: 'Billing',    icon: CreditCard,      testid: 'nav-billing' },
   { to: '/support',   label: 'Support',    icon: LifeBuoy,        testid: 'nav-support' },
 ];

@@ -22,6 +22,7 @@ from routes.tenant_routes import router as tenant_router
 from routes.admin_routes import router as admin_router
 from routes.payment_routes import router as payment_router
 from routes.support_routes import router as support_router, admin_router as support_admin_router
+from routes.lists_routes import router as lists_router
 from db import reset_sb
 
 app = FastAPI(title="INeedLeads API", version="1.0.0")
@@ -46,6 +47,7 @@ api.include_router(admin_router)
 api.include_router(payment_router)
 api.include_router(support_router)
 api.include_router(support_admin_router)
+api.include_router(lists_router)
 
 app.include_router(api)
 

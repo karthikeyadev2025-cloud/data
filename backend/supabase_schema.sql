@@ -25,6 +25,7 @@ create table if not exists platform_settings (
   brand_name          text default 'INeedLeads',
   footer_text         text default 'An innovation by NIKKI TECH LABS',
   support_email       text default 'adexosindia@gmail.com',
+  google_service_account_json text,
   created_at          timestamptz default now(),
   updated_at          timestamptz default now()
 );
@@ -202,6 +203,41 @@ create trigger tenants_updated_at
 drop trigger if exists settings_updated_at on platform_settings;
 create trigger settings_updated_at
   before update on platform_settings
+  for each row execute procedure set_updated_at();
+
+-- =====================================================
+-- 9. LEAD LISTS (named collections of saved contacts)
+-- =====================================================
+create table if not exists lead_lists (
+  id          uuid primary key default uuid_generate_v4(),
+  tenant_id   uuid not null references tenants(id) on delete cascade,
+  user_id     uuid references users(id) on delete set null,
+  name        text not null,
+  description text,
+  color       text default '#0EA5A4',
+  count       integer default 0,
+  created_at  timestamptz default now(),
+  updated_at  timestamptz default now()
+);
+create index if not exists idx_lists_tenant on lead_lists(tenant_id, created_at desc);
+
+-- =====================================================
+-- 10. LEAD LIST ITEMS (junction: result → list)
+-- =====================================================
+create table if not exists lead_list_items (
+  id          uuid primary key default uuid_generate_v4(),
+  list_id     uuid not null references lead_lists(id) on delete cascade,
+  result_id   uuid not null references search_results(id) on delete cascade,
+  notes       text,
+  created_at  timestamptz default now(),
+  unique(list_id, result_id)
+);
+create index if not exists idx_list_items_list on lead_list_items(list_id);
+create index if not exists idx_list_items_result on lead_list_items(result_id);
+
+drop trigger if exists lead_lists_updated_at on lead_lists;
+create trigger lead_lists_updated_at
+  before update on lead_lists
   for each row execute procedure set_updated_at();
 
 -- =====================================================
